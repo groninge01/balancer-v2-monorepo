@@ -33,10 +33,10 @@ contract MerkleOrchard is IDistributor, Ownable {
     using SafeERC20 for IERC20;
 
     // Recorded distributions
-    // rewardToken > rewarder > distribution > root
-    mapping(IERC20 => mapping(address => mapping(uint256 => bytes32))) public trees;
-    // rewardToken > rewarder distribution > lp > root
-    mapping(IERC20 => mapping(address => mapping(uint256 => mapping(address => bool)))) public claimed;
+    // keccak(rewardToken|rewarder|distribution) > root
+    mapping(bytes32 => bytes32) public trees;
+    // keccak(rewardToken|rewarder|distribution) > lp > claimStatus
+    mapping(bytes32 => mapping(address => bool)) public claimed;
     // rewardToken > rewarder > balance
     mapping(IERC20 => mapping(address => uint256)) public suppliedBalance;
 
@@ -98,7 +98,7 @@ contract MerkleOrchard is IDistributor, Ownable {
                 kind: kind
             });
 
-            claimed[claim.rewardToken][claim.rewarder][claim.distribution][liquidityProvider] = true;
+            _setClaimed(claim.rewardToken, claim.rewarder, claim.distribution, liquidityProvider);
 
             suppliedBalance[claim.rewardToken][claim.rewarder] =
                 suppliedBalance[claim.rewardToken][claim.rewarder] -
@@ -146,7 +146,16 @@ contract MerkleOrchard is IDistributor, Ownable {
         uint256 distribution,
         address liquidityProvider
     ) public view returns (bool) {
-        return claimed[rewardToken][rewarder][distribution][liquidityProvider];
+        return claimed[_getDistributionId(rewardToken, rewarder, distribution)][liquidityProvider];
+    }
+
+    function _setClaimed(
+        IERC20 rewardToken,
+        address rewarder,
+        uint256 distribution,
+        address liquidityProvider
+    ) internal {
+        claimed[_getDistributionId(rewardToken, rewarder, distribution)][liquidityProvider] = true;
     }
 
     function claimStatus(
@@ -175,7 +184,7 @@ contract MerkleOrchard is IDistributor, Ownable {
         uint256 size = 1 + end - begin;
         bytes32[] memory arr = new bytes32[](size);
         for (uint256 i = 0; i < size; i++) {
-            arr[i] = trees[rewardToken][rewarder][begin + i];
+            arr[i] = trees[_getDistributionId(rewardToken, rewarder, begin + i)];
         }
         return arr;
     }
@@ -189,7 +198,15 @@ contract MerkleOrchard is IDistributor, Ownable {
         bytes32[] memory merkleProof
     ) public view returns (bool) {
         bytes32 leaf = keccak256(abi.encodePacked(liquidityProvider, claimedBalance));
-        return MerkleProof.verify(merkleProof, trees[rewardToken][rewarder][distribution], leaf);
+        return MerkleProof.verify(merkleProof, trees[_getDistributionId(rewardToken, rewarder, distribution)], leaf);
+    }
+
+    function _getDistributionId(
+        IERC20 rewardToken,
+        address rewarder,
+        uint256 distribution
+    ) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(rewardToken, rewarder, distribution));
     }
 
     /**
@@ -204,7 +221,8 @@ contract MerkleOrchard is IDistributor, Ownable {
         bytes32 _merkleRoot,
         uint256 amount
     ) external {
-        require(trees[rewardToken][msg.sender][distribution] == bytes32(0), "cannot rewrite merkle root");
+        bytes32 distributionId = _getDistributionId(rewardToken, msg.sender, distribution);
+        require(trees[distributionId] == bytes32(0), "cannot rewrite merkle root");
         rewardToken.safeTransferFrom(msg.sender, address(this), amount);
 
         rewardToken.approve(address(vault), type(uint256).max);
@@ -220,8 +238,8 @@ contract MerkleOrchard is IDistributor, Ownable {
 
         vault.manageUserBalance(ops);
 
-        suppliedBalance[rewardToken][msg.sender] = suppliedBalance[rewardToken][msg.sender] + amount;
-        trees[rewardToken][msg.sender][distribution] = _merkleRoot;
+        suppliedBalance[rewardToken][msg.sender] += amount;
+        trees[distributionId] = _merkleRoot;
         emit RewardAdded(address(rewardToken), amount);
     }
 }
