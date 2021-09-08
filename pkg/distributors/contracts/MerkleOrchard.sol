@@ -188,7 +188,7 @@ contract MerkleOrchard is IDistributor, Ownable {
         address liquidityProvider,
         uint256 claimedBalance,
         bytes32[] memory merkleProof
-    ) public view returns (bool) {
+    ) internal view returns (bool) {
         bytes32 leaf = keccak256(abi.encodePacked(index, liquidityProvider, claimedBalance));
         return MerkleProof.verify(merkleProof, trees[distributionId], leaf);
     }
