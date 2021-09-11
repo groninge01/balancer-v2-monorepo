@@ -20,4 +20,4 @@ cache/
 
 # Build artifacts
 dist/
-.env
+**/.env
