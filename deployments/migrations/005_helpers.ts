@@ -6,11 +6,9 @@ export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
 
   const { deployer } = await getNamedAccounts();
 
-  const vault = await deployments.get('Vault');
-
   await deploy('BalancerHelpers', {
     from: deployer,
-    args: [vault.address],
+    args: ['0x20dd72Ed959b6147912C2e529F0a0C651c33c9ce'],
     log: true,
   });
 }
