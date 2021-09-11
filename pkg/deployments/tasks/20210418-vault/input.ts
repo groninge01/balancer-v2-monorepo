@@ -47,4 +47,10 @@ export default {
     pauseWindowDuration: 3 * MONTH,
     bufferPeriodDuration: MONTH,
   },
+  opera: {
+    Authorizer,
+    weth: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', // WFTM
+    pauseWindowDuration: 3 * MONTH,
+    bufferPeriodDuration: MONTH,
+  },
 };

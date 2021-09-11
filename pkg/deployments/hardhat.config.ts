@@ -1,7 +1,9 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import 'hardhat-local-networks-config-plugin';
-
 import '@balancer-labs/v2-common/setupTests';
 
 import { task, types } from 'hardhat/config';
@@ -30,8 +32,15 @@ task(TASK_TEST)
   .addOptionalParam('blockNumber', 'Optional block number to fork in case of running fork tests.', undefined, types.int)
   .setAction(test);
 
+const DEPLOYER_PRIVATE_KEY =
+  process.env.DEPLOYER_PRIVATE_KEY || '0000000000000000000000000000000000000000000000000000000000000000';
+
 export default {
-  mocha: {
-    timeout: 40000,
+  networks: {
+    opera: {
+      chainId: 250,
+      url: `https://rpc.ftm.tools/`,
+      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
+    },
   },
 };
