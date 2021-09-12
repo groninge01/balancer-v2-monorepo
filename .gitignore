@@ -21,3 +21,6 @@ cache/
 # Build artifacts
 dist/
 **/.env
+
+# IDE configs
+.idea
