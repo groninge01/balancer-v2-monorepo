@@ -7,10 +7,10 @@ export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
 
   const { deployer } = await getNamedAccounts();
 
-  if (chainId === '4002') {
+  if (chainId === '4') {
     await deploy('BalancerHelpers', {
       from: deployer,
-      args: ['0x974D3FF709D84Ba44cde3257C0B5B0b14C081Ce9'],
+      args: ['0x6732d651EeA0bc98FcF4EFF8B62e0CdCB0064f4b'],
       log: true,
     });
   } else if (chainId === '250') {
