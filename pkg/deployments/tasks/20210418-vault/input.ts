@@ -31,7 +31,7 @@ export default {
   },
   rinkeby: {
     Authorizer,
-    weth: '0xdFCeA9088c8A88A76FF74892C1457C17dfeef9C1',
+    weth: '0x80dD2B80FbcFB06505A301d732322e987380EcD6',
     pauseWindowDuration: 3 * MONTH,
     bufferPeriodDuration: MONTH,
   },
@@ -50,12 +50,6 @@ export default {
   opera: {
     Authorizer,
     weth: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', // WFTM
-    pauseWindowDuration: 3 * MONTH,
-    bufferPeriodDuration: MONTH,
-  },
-  ftmTestnet: {
-    Authorizer,
-    weth: '0x80dD2B80FbcFB06505A301d732322e987380EcD6', // WFTM
     pauseWindowDuration: 3 * MONTH,
     bufferPeriodDuration: MONTH,
   },
