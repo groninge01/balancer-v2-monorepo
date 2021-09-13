@@ -48,6 +48,7 @@ export default {
       url: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
       accounts: [`0x${DEPLOYER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
       saveDeployments: true,
+      gasMultiplier: 10,
     },
   },
 };
