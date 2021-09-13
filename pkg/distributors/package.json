@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "description": "Utilities for distributing tokens from internal balance",
   "license": "GPL-3.0-only",
-  "homepage": "https://github.com/balancer-labs/balancer-v2-monorepo/pkg/distributors#readme",
+  "homepage": "https://github.com/beethovenxfi/balancer-v2-monorepo/tree/master/pkg/distributors#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/balancer-labs/balancer-v2-monorepo.git",
+    "url": "git@github.com:beethovenxfi/balancer-v2-monorepo.git",
     "directory": "pkg/distributors"
   },
   "bugs": {
-    "url": "https://github.com/balancer-labs/balancer-v2-monorepo/issues"
+    "url": "https://github.com/beethovenxfi/balancer-v2-monorepo/issues"
   },
   "scripts": {
     "build": "yarn compile",
