@@ -27,6 +27,7 @@ const CHAIN_IDS = {
   ropsten: 3,
   dockerParity: 17,
   opera: 250,
+  ftmTestnet: 4002,
 };
 
 const INFURA_KEY = process.env.INFURA_KEY || '';
@@ -88,6 +89,12 @@ export default {
       accounts: [`0x${DEPLOYER_PRIVATE_KEY}`, `0x${CONTROLLER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
       saveDeployments: true,
     },
+    ftmTestnet: {
+      chainId: CHAIN_IDS.ftmTestnet,
+      url: `https://rpc.testnet.fantom.network/`,
+      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`, `0x${CONTROLLER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
+      saveDeployments: true,
+    },
   },
   namedAccounts: {
     deployer: {
@@ -99,6 +106,7 @@ export default {
       [CHAIN_IDS.rinkeby]: 0,
       [CHAIN_IDS.dockerParity]: 0,
       [CHAIN_IDS.opera]: 0,
+      [CHAIN_IDS.ftmTestnet]: 0,
     },
     admin: {
       default: 1, // here this will by default take the first account as deployer
@@ -110,6 +118,7 @@ export default {
       [CHAIN_IDS.rinkeby]: '0x44DDF1D6292F36B25230a72aBdc7159D37d317Cf',
       [CHAIN_IDS.dockerParity]: 1,
       [CHAIN_IDS.opera]: '0x4fbe899d37fb7514adf2f41B0630E018Ec275a0C',
+      [CHAIN_IDS.ftmTestnet]: '0x4fbe899d37fb7514adf2f41B0630E018Ec275a0C',
     },
   },
   solidity: {
