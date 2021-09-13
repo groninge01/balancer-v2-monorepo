@@ -1,4 +1,5 @@
 {
-  "WeightedPoolFactory": "0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9",
-  "WeightedPool2TokensFactory": "0xA5bf2ddF098bb0Ef6d120C98217dD6B141c74EE0"
+  "WeightedPoolFactory": "0x09523Acc78Dd297Ae5Da00DdeBE6f10ebF784565",
+  "timestamp": 1631536069128,
+  "WeightedPool2TokensFactory": "0x548e2f8114DDf1c796C37e83D26db9b1cf215a62"
 }
