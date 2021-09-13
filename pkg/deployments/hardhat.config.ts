@@ -42,5 +42,10 @@ export default {
       url: `https://rpc.ftm.tools/`,
       accounts: [`0x${DEPLOYER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
     },
+    ftmTestnet: {
+      chainId: 4002,
+      url: `https://rpc.testnet.fantom.network/`,
+      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
+    },
   },
 };

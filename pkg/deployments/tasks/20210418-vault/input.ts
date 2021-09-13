@@ -53,4 +53,10 @@ export default {
     pauseWindowDuration: 3 * MONTH,
     bufferPeriodDuration: MONTH,
   },
+  ftmTestnet: {
+    Authorizer,
+    weth: '0x80dD2B80FbcFB06505A301d732322e987380EcD6', // WFTM
+    pauseWindowDuration: 3 * MONTH,
+    bufferPeriodDuration: MONTH,
+  },
 };
