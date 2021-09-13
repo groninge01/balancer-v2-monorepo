@@ -10,7 +10,7 @@ export default async function (hre: HardhatRuntimeEnvironment): Promise<void> {
   if (chainId === '4') {
     await deploy('BalancerHelpers', {
       from: deployer,
-      args: ['0x6732d651EeA0bc98FcF4EFF8B62e0CdCB0064f4b'],
+      args: ['0xF07513C68C55A31337E3b58034b176A15Dce16eD'],
       log: true,
     });
   } else if (chainId === '250') {
