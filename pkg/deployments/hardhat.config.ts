@@ -34,6 +34,7 @@ task(TASK_TEST)
 
 const DEPLOYER_PRIVATE_KEY =
   process.env.DEPLOYER_PRIVATE_KEY || '0000000000000000000000000000000000000000000000000000000000000000';
+const INFURA_KEY = process.env.INFURA_KEY || '';
 
 export default {
   networks: {
@@ -42,10 +43,12 @@ export default {
       url: `https://rpc.ftm.tools/`,
       accounts: [`0x${DEPLOYER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
     },
-    ftmTestnet: {
-      chainId: 4002,
-      url: `https://rpc.testnet.fantom.network/`,
+    rinkeby: {
+      chainId: 4,
+      url: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
       accounts: [`0x${DEPLOYER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
+      saveDeployments: true,
+      gasMultiplier: 10,
     },
   },
 };
