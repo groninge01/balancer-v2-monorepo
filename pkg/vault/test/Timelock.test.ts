@@ -33,6 +33,47 @@ describe('Timelock', () => {
     authorizer = vault.authorizer!;
   });
 
+  describe('timelock admin transfer', () => {
+    it('allows one time transfer by admin', async () => {
+      console.log(
+        'PARAAAMS',
+        encodeParameters(['address', 'uint'], ['0xca206C8c897d9930AA6E94cF03eB2E5393B65e30', 172800])
+      );
+      await timelock.connect(admin).setPendingAdmin(user.address);
+      await timelock.connect(user).acceptAdmin();
+      expect(await timelock.admin()).to.equal(user.address);
+    });
+
+    it('does not allow admin transfer by admin after initial transfer', async () => {
+      /*
+          the admin can only be transferred once by the admin itself, afterwards it has to go through the timelock
+       */
+      await timelock.connect(admin).setPendingAdmin(user.address);
+      await timelock.connect(user).acceptAdmin();
+      await expect(timelock.connect(user).setPendingAdmin(other.address)).to.be.revertedWith(
+        'Timelock::setPendingAdmin: Call must come from Timelock.'
+      );
+    });
+
+    it('allows admin transfer by timelock after initial transfer', async () => {
+      await timelock.connect(admin).setPendingAdmin(user.address);
+      await timelock.connect(user).acceptAdmin();
+
+      // now we wanna transfer admin to 'other' signer
+      const data = timelock.interface.encodeFunctionData('setPendingAdmin', [other.address]);
+      const eta = moment().add(6, 'days').unix();
+
+      await timelock.connect(user).queueTransaction(timelock.address, '0', 0, data, eta);
+
+      // advance 6days and a bit
+      await advanceTime(518500);
+      await timelock.connect(user).executeTransaction(timelock.address, '0', 0, data, eta);
+      await timelock.connect(other).acceptAdmin();
+
+      expect(await timelock.admin()).to.equal(other.address);
+    });
+  });
+
   describe('timelocked transaction execution', () => {
     it('queues transaction when sender is admin and eta > delay', async () => {
       const updatedSwapFeePercentage = bn(20e16);
