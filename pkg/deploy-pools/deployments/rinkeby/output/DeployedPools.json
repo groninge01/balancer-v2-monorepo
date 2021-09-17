@@ -1,0 +1,74 @@
+{
+  "TEST-WEIGHTED": {
+    "address": "0x22724272247754F7D40e86985b5eE6430086B119",
+    "id": "0x22724272247754f7d40e86985b5ee6430086b11900010000000000000000001f",
+    "symbol": "TEST-WEIGHTED",
+    "blockHash": "0x92b28e8748c00a34297c4d90ca0fc22517d510f136feede78b53695bf1585255",
+    "name": "Test pool",
+    "tokens": [
+      "0x0483863540CB2C1ea77F7827db43ee160a0Ad7AC",
+      "0x80dD2B80FbcFB06505A301d732322e987380EcD6",
+      "0xb4761d0481B4f7a8A858D2796eEF3DAa2f3D9D2c"
+    ],
+    "weights": [
+      {
+        "type": "BigNumber",
+        "hex": "0x04a03ce68d215555"
+      },
+      {
+        "type": "BigNumber",
+        "hex": "0x04a03ce68d215555"
+      },
+      {
+        "type": "BigNumber",
+        "hex": "0x04a03ce68d215556"
+      }
+    ],
+    "initialBalances": [
+      {
+        "type": "BigNumber",
+        "hex": "0x138ed765dee6d2abf0"
+      },
+      {
+        "type": "BigNumber",
+        "hex": "0x01ea5446019c48c0"
+      },
+      {
+        "type": "BigNumber",
+        "hex": "0x0f4240"
+      }
+    ],
+    "swapFeePercentage": {
+      "type": "BigNumber",
+      "hex": "0x08e1bc9bf04000"
+    },
+    "etherscanApiKey": "6BBVB2S3S5I1JJIYZJUVU21WVEB5CEVPYU"
+  },
+  "TEST-STABLE": {
+    "address": "0xC293BE5Ed249adF8D8534112c450d916595324f2",
+    "id": "0xc293be5ed249adf8d8534112c450d916595324f2000200000000000000000020",
+    "symbol": "TEST-STABLE",
+    "blockHash": "0x57fd5feb81e476fb095824382509a91f5a01bb0ac7761315090a6b0526dced4a",
+    "name": "Test Stable Pool",
+    "tokens": [
+      "0x12c615406F20eDcBDa50888f9fd6734dC4836417",
+      "0x70b55Af71B29c5Ca7e67bD1995250364C4bE5554"
+    ],
+    "initialBalances": [
+      {
+        "type": "BigNumber",
+        "hex": "0x02b5e3af16b1880000"
+      },
+      {
+        "type": "BigNumber",
+        "hex": "0x02faf080"
+      }
+    ],
+    "amplificationParameter": 200,
+    "swapFeePercentage": {
+      "type": "BigNumber",
+      "hex": "0x01c6bf52634000"
+    },
+    "etherscanApiKey": "6BBVB2S3S5I1JJIYZJUVU21WVEB5CEVPYU"
+  }
+}

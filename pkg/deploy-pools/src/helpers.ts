@@ -10,8 +10,8 @@ import fs from 'fs';
 import logger from '@balancer-labs/v2-deployments/src/logger';
 
 const TASKS_DIRECTORY = path.resolve(__dirname, '../../deployments/tasks');
-const ARTIFACTS_DIR_PATH = path.resolve(__dirname, `../deployments/${network.name}/artifacts`);
-const DEPLOYED_POOLS_FILE_PATH = path.resolve(ARTIFACTS_DIR_PATH, 'DeployedPools.json');
+const OUTPUT_DIR_PATH = path.resolve(__dirname, `../deployments/${network.name}/output`);
+const DEPLOYED_POOLS_FILE_PATH = path.resolve(OUTPUT_DIR_PATH, 'DeployedPools.json');
 const RETRY_COUNT = 15;
 
 export async function joinPool({
@@ -184,8 +184,8 @@ export function savePoolDeployment(
   blockHash: string,
   args: { [key: string]: unknown }
 ): void {
-  if (!fs.existsSync(ARTIFACTS_DIR_PATH)) {
-    fs.mkdirSync(ARTIFACTS_DIR_PATH);
+  if (!fs.existsSync(OUTPUT_DIR_PATH)) {
+    fs.mkdirSync(OUTPUT_DIR_PATH);
   }
 
   const deployedPools = fs.existsSync(DEPLOYED_POOLS_FILE_PATH)
