@@ -192,6 +192,7 @@ export function savePoolDeployment(
     ? JSON.parse(fs.readFileSync(DEPLOYED_POOLS_FILE_PATH).toString())
     : {};
 
+  //TODO: don't store the etherscan api key
   deployedPools[symbol] = {
     address,
     id,

@@ -10,9 +10,10 @@ dotenv.config();
 
 task('deploy', 'Run deployment task')
   .addParam('key', 'Etherscan API key to verify contracts')
-  .addFlag('force', 'Ignore previous deployments')
-  .setAction(async (args: { id: string; force?: boolean; key: string }, hre: HardhatRuntimeEnvironment) => {
+  .setAction(async (args: { id: string; key: string }, hre: HardhatRuntimeEnvironment) => {
     Logger.setDefaults(false, true);
+
+    //TODO: check if folder exists, if not throw error
 
     const migrationsPath = path.resolve(__dirname, `./deployments/${hre.network.name}/migrations`);
     const migrationFiles = fs.readdirSync(migrationsPath);
@@ -23,6 +24,10 @@ task('deploy', 'Run deployment task')
       await migration(args.key);
     }
   });
+
+//TODO: task for just the join?
+
+//TODO: task for just the verify?
 
 const DEPLOYER_PRIVATE_KEY =
   process.env.DEPLOYER_PRIVATE_KEY || '0000000000000000000000000000000000000000000000000000000000000000';
