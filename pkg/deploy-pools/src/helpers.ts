@@ -40,7 +40,7 @@ export async function joinPool({
   for (let i = 0; i < tokens.length; i++) {
     const token = await ethers.getContractAt(ERC20, tokens[i]);
     logger.info(`approving ${tokens[i]} ${initialBalances[i].toString()}`);
-    // we add a small buffer to the allowance overcome rejections
+
     await token.approve(vault.address, initialBalances[i]);
   }
 
@@ -56,6 +56,7 @@ export async function joinPool({
       await tx2.wait();
       break;
     } catch (e) {
+      console.log(e);
       if (i === RETRY_COUNT - 1) {
         //we've exhausted our retries, give up
         throw e;
@@ -86,10 +87,27 @@ export function getAbiEncodedConstructorArguments(
   abi: { type: string; inputs: { name: string; type: string }[] }[],
   values: unknown[]
 ): string {
-  const argTypes = abi.find((item) => item.type === 'constructor')?.inputs.map((input) => input.type) || [];
+  const argTypes =
+    abi.find((item) => item.type === 'constructor')?.inputs.map((input) => ethers.utils.ParamType.from(input)) || [];
+  //const argTypes = abi.find((item) => item.type === 'constructor')?.inputs.map((input) => input.type) || [];
+
   const abiCoder = new ethers.utils.AbiCoder();
 
   return abiCoder.encode(argTypes, values).replace('0x', '');
+}
+
+export function decodeAbieEncodedConstructorArguments(
+  abi: { type: string; inputs: { name: string; type: string }[] }[],
+  encodedArgs: string
+) {
+  //const argTypes =
+  //  abi.find((item) => item.type === 'constructor')?.inputs.map((input) => ethers.utils.ParamType.from(input)) || [];
+  const argTypes = abi.find((item) => item.type === 'constructor')?.inputs.map((input) => input.type) || [];
+
+  const abiCoder = new ethers.utils.AbiCoder();
+  const decoded = abiCoder.decode(argTypes, encodedArgs);
+
+  console.log(decoded);
 }
 
 export function getBufferPeriodDuration(): number {
@@ -147,6 +165,11 @@ export async function verifyPool({
 
       break;
     } catch (e) {
+      console.log('error', e);
+      if (e.message.indexOf('Contract source code already verified') !== -1) {
+        break;
+      }
+
       if (i === RETRY_COUNT - 1) {
         //we've exhausted our retries, give up.
         throw e;
@@ -158,23 +181,44 @@ export async function verifyPool({
 }
 
 export function hasPoolBeenDeployed(poolSymbol: string): boolean {
-  const poolAddress = getDeployedPoolAddress(poolSymbol);
+  const poolData = getDeployedPoolData(poolSymbol);
 
-  if (poolAddress) {
-    logger.info(`A pool has already been deployed for ${poolSymbol} at ${poolAddress}. Skipping...`);
+  if (poolData) {
+    logger.info(`A pool has already been deployed for ${poolSymbol} at ${poolData.address}. Skipping deployment...`);
+    return true;
   }
 
-  return !!poolAddress;
+  return false;
 }
 
-export function getDeployedPoolAddress(poolSymbol: string): string | null {
-  if (!fs.existsSync(DEPLOYED_POOLS_FILE_PATH)) {
-    return null;
+export function hasPoolBeenVerified(poolSymbol: string): boolean {
+  const poolData = getDeployedPoolData(poolSymbol);
+
+  if (poolData && poolData.verified) {
+    logger.info(`The pool with symbol ${poolSymbol} has already been verified. Skipping verification...`);
+    return true;
   }
 
-  const deployedPools = JSON.parse(fs.readFileSync(DEPLOYED_POOLS_FILE_PATH).toString());
+  return false;
+}
 
-  return deployedPools[poolSymbol]?.address || null;
+export function hasPoolBeenInitialized(poolSymbol: string): boolean {
+  const poolData = getDeployedPoolData(poolSymbol);
+
+  if (poolData && poolData.initialized) {
+    logger.info(`The pool with symbol ${poolSymbol} has already been initialized. Skipping initialization...`);
+    return true;
+  }
+
+  return false;
+}
+
+export function getDeployedPoolData(
+  poolSymbol: string
+): { address: string; id: string; blockHash: string; verified?: boolean; initialized?: boolean } | null {
+  const deployedPools = loadDeployedPools();
+
+  return deployedPools[poolSymbol];
 }
 
 export function savePoolDeployment(
@@ -184,22 +228,52 @@ export function savePoolDeployment(
   blockHash: string,
   args: { [key: string]: unknown }
 ): void {
-  if (!fs.existsSync(OUTPUT_DIR_PATH)) {
-    fs.mkdirSync(OUTPUT_DIR_PATH);
-  }
+  const deployedPools = loadDeployedPools();
 
-  const deployedPools = fs.existsSync(DEPLOYED_POOLS_FILE_PATH)
-    ? JSON.parse(fs.readFileSync(DEPLOYED_POOLS_FILE_PATH).toString())
-    : {};
-
-  //TODO: don't store the etherscan api key
   deployedPools[symbol] = {
     address,
     id,
     symbol,
     blockHash,
     ...args,
+    etherscanApiKey: undefined,
   };
 
+  saveDeployedPools(deployedPools);
+}
+
+export function setDeployedPoolAsVerified(symbol: string): void {
+  const deployedPools = loadDeployedPools();
+
+  deployedPools[symbol] = {
+    ...deployedPools[symbol],
+    verified: true,
+  };
+
+  saveDeployedPools(deployedPools);
+}
+
+export function setDeployedPoolAsInitialized(symbol: string): void {
+  const deployedPools = loadDeployedPools();
+
+  deployedPools[symbol] = {
+    ...deployedPools[symbol],
+    initialized: true,
+  };
+
+  saveDeployedPools(deployedPools);
+}
+
+function loadDeployedPools() {
+  if (!fs.existsSync(OUTPUT_DIR_PATH)) {
+    fs.mkdirSync(OUTPUT_DIR_PATH);
+  }
+
+  return fs.existsSync(DEPLOYED_POOLS_FILE_PATH)
+    ? JSON.parse(fs.readFileSync(DEPLOYED_POOLS_FILE_PATH).toString())
+    : {};
+}
+
+function saveDeployedPools(deployedPools: unknown) {
   fs.writeFileSync(DEPLOYED_POOLS_FILE_PATH, JSON.stringify(deployedPools, null, 2));
 }

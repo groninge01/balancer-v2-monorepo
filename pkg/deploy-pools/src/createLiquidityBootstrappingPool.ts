@@ -1,8 +1,7 @@
 import { ethers } from 'hardhat';
-import WeightedPoolFactory from '@balancer-labs/v2-deployments/tasks/20210418-weighted-pool/abi/WeightedPoolFactory.json';
-import WeightedPoolFactoryBuildInfo from '@balancer-labs/v2-deployments/tasks/20210418-weighted-pool/build-info/WeightedPoolFactory.json';
-import { ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
-import WeightedPool from '@balancer-labs/v2-deployments/tasks/20210418-weighted-pool/abi/WeightedPool.json';
+import LiquidityBootstrappingPoolFactory from '@balancer-labs/v2-deployments/tasks/20210721-liquidity-bootstrapping-pool/abi/LiquidityBootstrappingPoolFactory.json';
+import LiquidityBootstrappingPoolFactoryBuildInfo from '@balancer-labs/v2-deployments/tasks/20210721-liquidity-bootstrapping-pool/build-info/LiquidityBootstrappingPoolFactory.json';
+import LiquidityBootstrappingPool from '@balancer-labs/v2-deployments/tasks/20210721-liquidity-bootstrapping-pool/abi/LiquidityBootstrappingPool.json';
 import { BigNumber } from 'ethers';
 import {
   getAbiEncodedConstructorArguments,
@@ -25,32 +24,34 @@ import { BuildInfo } from 'hardhat/types';
 import Vault from '@balancer-labs/v2-deployments/tasks/20210418-vault/abi/Vault.json';
 import logger from '@balancer-labs/v2-deployments/src/logger';
 
-interface CreateWeightedPoolParams {
+interface CreateLbpParams {
   name: string;
   symbol: string;
   tokens: string[];
   weights: BigNumber[];
-  initialBalances: BigNumber[];
   swapFeePercentage: BigNumber;
-  owner?: string;
+  initialBalances: BigNumber[];
+  owner: string;
+  swapEnabledOnStart: boolean;
   etherscanApiKey: string;
 }
 
-export async function createWeightedPool(params: CreateWeightedPoolParams): Promise<void> {
-  const { name, symbol, tokens, weights, swapFeePercentage, owner, initialBalances } = params;
-  const weightedPoolFactoryAddress = getTaskOutputFile('20210418-weighted-pool').WeightedPoolFactory;
+export async function createLiquidityBootstrappingPool(params: CreateLbpParams): Promise<void> {
+  const { name, symbol, tokens, weights, swapFeePercentage, owner, initialBalances, swapEnabledOnStart } = params;
+  const lbpFactoryAddress = getTaskOutputFile('20210721-liquidity-bootstrapping-pool')
+    .LiquidityBootstrappingPoolFactory;
   const vaultAddress = await getVaultAddress();
   const vault = await ethers.getContractAt(Vault, vaultAddress);
-  const factory = await ethers.getContractAt(WeightedPoolFactory, weightedPoolFactoryAddress);
+  const factory = await ethers.getContractAt(LiquidityBootstrappingPoolFactory, lbpFactoryAddress);
 
   if (!hasPoolBeenDeployed(symbol)) {
-    logger.info('Calling create on the WeightedPoolFactory...');
-    const tx = await factory.create(name, symbol, tokens, weights, swapFeePercentage, owner || ZERO_ADDRESS);
+    logger.info('Calling create on the LiquidityBootstrappingPoolFactory...');
+    const tx = await factory.create(name, symbol, tokens, weights, swapFeePercentage, owner, swapEnabledOnStart);
     const { poolAddress, blockHash } = await getPoolAddressAndBlockHashFromTransaction(tx);
-    const pool = await ethers.getContractAt(WeightedPool, poolAddress);
+    const pool = await ethers.getContractAt(LiquidityBootstrappingPool, poolAddress);
     const poolId = await pool.getPoolId();
 
-    logger.success(`Successfully deployed the WeightedPool at address ${poolAddress} with id ${poolId}`);
+    logger.success(`Successfully deployed the LiquidityBootstrappingPool at address ${poolAddress} with id ${poolId}`);
     logger.info(`Pool deployment block hash: ${blockHash}`);
 
     savePoolDeployment(symbol, poolAddress, poolId, blockHash, { ...params });
@@ -59,7 +60,7 @@ export async function createWeightedPool(params: CreateWeightedPoolParams): Prom
   const poolData = getDeployedPoolData(symbol);
 
   if (poolData && !hasPoolBeenVerified(symbol)) {
-    await verifyWeightedPool({
+    await verifyLbpPool({
       ...params,
       poolAddress: poolData.address,
       blockHash: poolData.blockHash,
@@ -80,7 +81,7 @@ export async function createWeightedPool(params: CreateWeightedPoolParams): Prom
   }
 }
 
-async function verifyWeightedPool({
+async function verifyLbpPool({
   name,
   symbol,
   tokens,
@@ -90,13 +91,14 @@ async function verifyWeightedPool({
   poolAddress,
   blockHash,
   etherscanApiKey,
-}: CreateWeightedPoolParams & { poolAddress: string; blockHash: string }) {
+  swapEnabledOnStart,
+}: CreateLbpParams & { poolAddress: string; blockHash: string }) {
   const vaultAddress = getVaultAddress();
-  const pool = await ethers.getContractAt(WeightedPool, poolAddress);
+  const pool = await ethers.getContractAt(LiquidityBootstrappingPool, poolAddress);
   const pauseWindowDuration = await getPauseWindowDurationForPool(pool, blockHash);
   const bufferPeriodDuration = getBufferPeriodDuration();
 
-  const abiEncodedConstructorArguments = getAbiEncodedConstructorArguments(WeightedPool, [
+  const abiEncodedConstructorArguments = getAbiEncodedConstructorArguments(LiquidityBootstrappingPool, [
     vaultAddress,
     name,
     symbol,
@@ -105,14 +107,15 @@ async function verifyWeightedPool({
     swapFeePercentage,
     pauseWindowDuration - 3,
     bufferPeriodDuration,
-    owner || ZERO_ADDRESS,
+    owner,
+    swapEnabledOnStart,
   ]);
 
   await verifyPool({
-    contractName: 'WeightedPool',
+    contractName: 'LiquidityBootstrappingPool',
     poolAddress,
     abiEncodedConstructorArguments,
-    buildInfo: WeightedPoolFactoryBuildInfo as BuildInfo,
+    buildInfo: LiquidityBootstrappingPoolFactoryBuildInfo as BuildInfo,
     etherscanApiKey,
   });
 }

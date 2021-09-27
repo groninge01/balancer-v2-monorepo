@@ -6,13 +6,18 @@ import { ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
 import {
   getAbiEncodedConstructorArguments,
   getBufferPeriodDuration,
+  getDeployedPoolData,
   getPauseWindowDurationForPool,
   getPoolAddressAndBlockHashFromTransaction,
   getTaskOutputFile,
   getVaultAddress,
   hasPoolBeenDeployed,
+  hasPoolBeenInitialized,
+  hasPoolBeenVerified,
   joinPool,
   savePoolDeployment,
+  setDeployedPoolAsInitialized,
+  setDeployedPoolAsVerified,
   verifyPool,
 } from './helpers';
 import StablePool from '@balancer-labs/v2-deployments/tasks/20210624-stable-pool/abi/StablePool.json';
@@ -32,49 +37,55 @@ interface CreateStablePoolParams {
 }
 
 export async function createStablePool(params: CreateStablePoolParams): Promise<void> {
-  if (hasPoolBeenDeployed(params.symbol)) {
-    return;
-  }
-
   const { name, symbol, tokens, amplificationParameter, swapFeePercentage, owner, initialBalances } = params;
   const stablePoolFactoryAddress = getTaskOutputFile('20210624-stable-pool').StablePoolFactory;
   const vaultAddress = getVaultAddress();
   const factory = await ethers.getContractAt(StablePoolFactory, stablePoolFactoryAddress);
   const vault = await ethers.getContractAt(Vault, vaultAddress);
 
-  logger.info('Calling create on the StablePoolFactory...');
-  const tx = await factory.create(
-    name,
-    symbol,
-    tokens,
-    amplificationParameter,
-    swapFeePercentage,
-    owner || ZERO_ADDRESS
-  );
+  if (!hasPoolBeenDeployed(symbol)) {
+    logger.info('Calling create on the StablePoolFactory...');
+    const tx = await factory.create(
+      name,
+      symbol,
+      tokens,
+      amplificationParameter,
+      swapFeePercentage,
+      owner || ZERO_ADDRESS
+    );
 
-  const { poolAddress, blockHash } = await getPoolAddressAndBlockHashFromTransaction(tx);
+    const { poolAddress, blockHash } = await getPoolAddressAndBlockHashFromTransaction(tx);
+    const pool = await ethers.getContractAt(StablePool, poolAddress);
+    const poolId = await pool.getPoolId();
 
-  // We're going to need the PoolId later, so ask the contract for it
-  const pool = await ethers.getContractAt(StablePool, poolAddress);
-  const poolId = await pool.getPoolId();
+    logger.success(`Successfully deployed the StablePool at address ${poolAddress} with id ${poolId}`);
+    logger.info(`Pool deployment block hash: ${blockHash}`);
 
-  logger.success(`Successfully deployed the pool at address ${poolAddress} with id ${poolId}`);
-  logger.info(`Pool deployment block hash: ${blockHash}`);
+    savePoolDeployment(symbol, poolAddress, poolId, blockHash, { ...params });
+  }
 
-  await verifyStablePool({
-    ...params,
-    poolAddress,
-    blockHash,
-  });
+  const poolData = getDeployedPoolData(symbol);
 
-  await joinPool({
-    vault,
-    poolId,
-    tokens,
-    initialBalances,
-  });
+  if (poolData && !hasPoolBeenVerified(symbol)) {
+    await verifyStablePool({
+      ...params,
+      poolAddress: poolData.address,
+      blockHash: poolData.blockHash,
+    });
 
-  savePoolDeployment(symbol, poolAddress, poolId, blockHash, { ...params });
+    setDeployedPoolAsVerified(symbol);
+  }
+
+  if (poolData && !hasPoolBeenInitialized(symbol)) {
+    await joinPool({
+      vault,
+      poolId: poolData.id,
+      tokens,
+      initialBalances,
+    });
+
+    setDeployedPoolAsInitialized(symbol);
+  }
 }
 
 async function verifyStablePool({

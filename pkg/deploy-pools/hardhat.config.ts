@@ -12,10 +12,15 @@ task('deploy', 'Run deployment task')
   .addParam('key', 'Etherscan API key to verify contracts')
   .setAction(async (args: { id: string; key: string }, hre: HardhatRuntimeEnvironment) => {
     Logger.setDefaults(false, true);
-
-    //TODO: check if folder exists, if not throw error
-
     const migrationsPath = path.resolve(__dirname, `./deployments/${hre.network.name}/migrations`);
+
+    if (!fs.existsSync(migrationsPath)) {
+      throw new Error(
+        `There are no migrations for your chosen network: ${hre.network.name}. Please create your migrations in ./deployments/${hre.network.name}/migrations and rerun the deploy task.`
+      );
+    }
+
+    //fetch all files in the migrations directory for the specified network
     const migrationFiles = fs.readdirSync(migrationsPath);
 
     for (const migrationFile of migrationFiles) {
@@ -24,10 +29,6 @@ task('deploy', 'Run deployment task')
       await migration(args.key);
     }
   });
-
-//TODO: task for just the join?
-
-//TODO: task for just the verify?
 
 const DEPLOYER_PRIVATE_KEY =
   process.env.DEPLOYER_PRIVATE_KEY || '0000000000000000000000000000000000000000000000000000000000000000';
@@ -39,6 +40,7 @@ export default {
       chainId: 250,
       url: `https://rpc.ftm.tools/`,
       accounts: [`0x${DEPLOYER_PRIVATE_KEY}`], // Using private key instead of mnemonic for vanity deploy
+      saveDeployments: true,
     },
     rinkeby: {
       chainId: 4,
