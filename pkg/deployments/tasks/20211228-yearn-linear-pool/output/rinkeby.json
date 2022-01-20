@@ -1,4 +1,6 @@
 {
-  "YearnLinearPoolFactory": "0x52D16816B50C533214a28b8989309D928AD0E795",
-  "timestamp": 1640697477395
+  "timestamp": 1642671670871,
+  "BatchRelayerLibrary": "0x1E0313043bd65dc80B0bC107E3698822d2d0AA57",
+  "BalancerRelayer": "0x71045da773E972183c23A92de4B4501f14F26768",
+  "YearnLinearPoolFactory": "0xB79C16EfD530e46b7A1499c1854f13f4Bd10f4DF"
 }

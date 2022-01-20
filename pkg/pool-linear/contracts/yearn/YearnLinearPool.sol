@@ -51,8 +51,20 @@ contract YearnLinearPool is LinearPool {
         _require(address(mainToken) == IYearnTokenVault(address(wrappedToken)).token(), Errors.TOKENS_MISMATCH);
     }
 
+    //_getWrappedTokenRate is expected to return the rate scaled to 18 decimal points, regardless of underlying decimals
     function _getWrappedTokenRate() internal view override returns (uint256) {
-        // The LinearPool implementation manages decimal scaling, so simply returning pricePerShare is appropriate
-        return _tokenVault.pricePerShare();
+        //the decimals of the vault token reflect that of the mainToken. So a USDC token vault has decimals = 6
+        uint8 decimals = _tokenVault.decimals();
+        uint256 pps = _tokenVault.pricePerShare();
+
+        if (decimals > 18) {
+            //scale down to 18
+            return pps / 10**(decimals - 18);
+        }else if (decimals < 18) {
+            //scale up to 18
+            return pps * 10**(18 - decimals);
+        }
+
+        return pps;
     }
 }

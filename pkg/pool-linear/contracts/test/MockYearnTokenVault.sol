@@ -16,9 +16,9 @@ pragma solidity ^0.7.0;
 
 import "@balancer-labs/v2-standalone-utils/contracts/test/TestToken.sol";
 
-import "../interfaces/IYearnTokenVault.sol";
-
-contract MockYearnTokenVault is TestToken, IYearnTokenVault {
+//we're unable to implement IYearnTokenVault because it defines the decimals function, which collides with
+//the TestToken ERC20 implementation
+contract MockYearnTokenVault is TestToken {
     address private immutable _token;
     uint256 private immutable _pricePerShare;
 
@@ -34,11 +34,11 @@ contract MockYearnTokenVault is TestToken, IYearnTokenVault {
         _pricePerShare = sharePrice;
     }
 
-    function token() external view override returns (address) {
+    function token() external view returns (address) {
         return _token;
     }
 
-    function pricePerShare() external view override returns (uint256) {
+    function pricePerShare() external view returns (uint256) {
         return _pricePerShare;
     }
 }

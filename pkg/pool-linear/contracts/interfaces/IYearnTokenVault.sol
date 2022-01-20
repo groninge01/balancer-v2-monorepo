@@ -24,4 +24,9 @@ interface IYearnTokenVault {
      * @dev returns the price for a single Vault share (ie yvDAI). The pricePerShare is represented in the same decimals as the underlying asset (ie: 6 decimals for USDC)
      */
     function pricePerShare() external view returns (uint256);
+
+    /**
+     * @dev returns the number of decimals for this vault token
+     */
+    function decimals() external view returns (uint8);
 }
