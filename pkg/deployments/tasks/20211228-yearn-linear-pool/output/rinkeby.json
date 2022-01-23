@@ -1,6 +1,6 @@
 {
-  "timestamp": 1642671670871,
-  "BatchRelayerLibrary": "0x1E0313043bd65dc80B0bC107E3698822d2d0AA57",
-  "BalancerRelayer": "0x71045da773E972183c23A92de4B4501f14F26768",
-  "YearnLinearPoolFactory": "0xB79C16EfD530e46b7A1499c1854f13f4Bd10f4DF"
+  "timestamp": 1642763269683,
+  "YearnLinearPoolFactory": "0xa58d8194D4c64045846e3bB12DBaF715EC74f947",
+  "BatchRelayerLibrary": "0xf4F5F1869cC84E2F9de6823f447FB952dB0838aB",
+  "BalancerRelayer": "0xD6147EAD78fD7B77b3141E2960B41a4F55803BC1"
 }
