@@ -52,6 +52,7 @@ abstract contract MasterChefStaking is IBaseRelayerLibrary {
         }
 
         // deposit the tokens to the masterchef
+        token.approve(address(masterChef), amount);
         masterChef.deposit(pid, amount, recipient);
 
         if (_isChainedReference(outputReference)) {

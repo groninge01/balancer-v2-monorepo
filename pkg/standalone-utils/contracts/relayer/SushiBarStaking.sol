@@ -48,7 +48,8 @@ abstract contract SushiBarStaking is IBaseRelayerLibrary {
             _pullToken(sender, sushiBar.vestingToken(), amount);
         }
 
-        //deposit the base token into the sushi bar
+        //deposit the vesting token into the sushi bar
+        sushiBar.vestingToken().approve(address(sushiBar), amount);
         sushiBar.enter(amount);
 
         //determine the amount of xSUSHI minted for the amount deposited
