@@ -81,6 +81,14 @@ describe('SushiBarLinearPool', function () {
       expect(await pool.getWrappedTokenRate()).to.be.eq(fp(102 / 100));
     });
 
+    it('should handle 18 points of precision', async () => {
+      //1.111_111_111_111_111_111
+      await mainToken.mint(wrappedToken.address, '1111111111111111111');
+
+      //1.011_111_111_111_111_111
+      expect((await pool.getWrappedTokenRate()).toString()).to.be.eq('1011111111111111111');
+    });
+
     it('should always return the latest wrapped token rate', async () => {
       await mainToken.mint(wrappedToken.address, fp(2));
       expect(await pool.getWrappedTokenRate()).to.be.eq(fp(102 / 100));
