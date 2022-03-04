@@ -17,7 +17,7 @@ import { Address } from 'cluster';
 
 const INITIAL_AMOUNT = fp(100);
 
-describe('MasterChefStaking', function () {
+describe('FBeetsBarStaking', function () {
   let beets: Token, otherToken: Token;
   let fbeets: Contract;
   let senderUser: SignerWithAddress, recipientUser: SignerWithAddress, admin: SignerWithAddress;
@@ -33,8 +33,8 @@ describe('MasterChefStaking', function () {
     beets = await Token.create('BEETS');
     otherToken = await Token.create('OTHER');
 
-    fbeets = await deploy('MockSushiBar', {
-      args: [admin.address, 'fBeetsBar', 'fBEETS', 18, beets.address],
+    fbeets = await deploy('MockFBeetsBar', {
+      args: [admin.address, beets.address],
     });
   });
 
@@ -51,7 +51,7 @@ describe('MasterChefStaking', function () {
   sharedBeforeEach('set up relayer', async () => {
     // Deploy Relayer
     relayerLibrary = await deploy('MockBatchRelayerLibrary', {
-      args: [vault.address, ZERO_ADDRESS, ZERO_ADDRESS],
+      args: [vault.address, ZERO_ADDRESS, ZERO_ADDRESS, fbeets.address, ZERO_ADDRESS],
     });
     relayer = await deployedAt('BalancerRelayer', await relayerLibrary.getEntrypoint());
 
@@ -77,16 +77,12 @@ describe('MasterChefStaking', function () {
   }
 
   function encodeEnter(
-    sushiBar: string,
-    token: Token,
     sender: Account,
     recipient: Account,
     amount: BigNumberish,
     outputReference?: BigNumberish
   ): string {
-    return relayerLibrary.interface.encodeFunctionData('sushiBarEnter', [
-      sushiBar,
-      TypesConverter.toAddress(token),
+    return relayerLibrary.interface.encodeFunctionData('fBeetsBarEnter', [
       TypesConverter.toAddress(sender),
       TypesConverter.toAddress(recipient),
       amount,
@@ -95,16 +91,12 @@ describe('MasterChefStaking', function () {
   }
 
   function encodeLeave(
-    sushiBar: string,
-    token: Token,
     sender: Account,
     recipient: Account,
     amount: BigNumberish,
     outputReference?: BigNumberish
   ): string {
-    return relayerLibrary.interface.encodeFunctionData('sushiBarLeave', [
-      sushiBar,
-      TypesConverter.toAddress(token),
+    return relayerLibrary.interface.encodeFunctionData('fBeetsBarLeave', [
       TypesConverter.toAddress(sender),
       TypesConverter.toAddress(recipient),
       amount,
@@ -132,7 +124,7 @@ describe('MasterChefStaking', function () {
     it('can enter the sushibar', async () => {
       await relayer
         .connect(senderUser)
-        .multicall([encodeEnter(fbeets.address, beets, senderUser, recipientUser, amount, toChainedReference(0))]);
+        .multicall([encodeEnter(senderUser, recipientUser, amount, toChainedReference(0))]);
 
       await expectChainedReferenceContents(toChainedReference(0), amount);
 
@@ -146,18 +138,14 @@ describe('MasterChefStaking', function () {
     });
 
     it('only sends the amount of fBEETS minted on enter', async () => {
-      await relayer
-        .connect(senderUser)
-        .multicall([encodeEnter(fbeets.address, beets, senderUser, recipientUser, fp(50))]);
+      await relayer.connect(senderUser).multicall([encodeEnter(senderUser, recipientUser, fp(50))]);
 
       //send 50 fbeets to the relayer
       await fbeets.connect(recipientUser).transfer(relayer.address, fp(50));
       const relayerFBeetsBalance = await fbeets.balanceOf(relayer.address);
       expect(relayerFBeetsBalance.toString()).to.equal(fp(50).toString());
 
-      await relayer
-        .connect(senderUser)
-        .multicall([encodeEnter(fbeets.address, beets, senderUser, senderUser, amount, toChainedReference(0))]);
+      await relayer.connect(senderUser).multicall([encodeEnter(senderUser, senderUser, amount, toChainedReference(0))]);
 
       await expectChainedReferenceContents(toChainedReference(0), amount);
 
@@ -169,9 +157,7 @@ describe('MasterChefStaking', function () {
       const ref = toChainedReference(0);
       await setChainedReferenceContents(ref, amount);
 
-      await relayer
-        .connect(senderUser)
-        .multicall([encodeEnter(fbeets.address, beets, senderUser, recipientUser, ref, toChainedReference(1))]);
+      await relayer.connect(senderUser).multicall([encodeEnter(senderUser, recipientUser, ref, toChainedReference(1))]);
 
       await expectChainedReferenceContents(toChainedReference(1), amount);
 
@@ -186,7 +172,7 @@ describe('MasterChefStaking', function () {
     });
 
     it('reverts when provided a token that is not the underlying token', async () => {
-      const calls = [encodeEnter(fbeets.address, otherToken, senderUser, recipientUser, fp(1))];
+      const calls = [encodeEnter(senderUser, recipientUser, fp(1))];
 
       try {
         await relayer.connect(senderUser).multicall(calls);
@@ -201,11 +187,11 @@ describe('MasterChefStaking', function () {
     const amount = fp(1);
 
     it('can leave the sushibar', async () => {
-      await relayer.connect(senderUser).multicall([encodeEnter(fbeets.address, beets, senderUser, senderUser, amount)]);
+      await relayer.connect(senderUser).multicall([encodeEnter(senderUser, senderUser, amount)]);
 
       await relayer
         .connect(senderUser)
-        .multicall([encodeLeave(fbeets.address, beets, senderUser, recipientUser, amount, toChainedReference(0))]);
+        .multicall([encodeLeave(senderUser, recipientUser, amount, toChainedReference(0))]);
 
       const recipientBeetsBalance = await beets.balanceOf(recipientUser);
       expect(recipientBeetsBalance.toString()).to.equal(amount.toString());
@@ -214,11 +200,11 @@ describe('MasterChefStaking', function () {
     it('only returns the beets received by burning fbeets when leaving the sushi bar', async () => {
       await beets.mint(relayer, fp(100));
 
-      await relayer.connect(senderUser).multicall([encodeEnter(fbeets.address, beets, senderUser, senderUser, amount)]);
+      await relayer.connect(senderUser).multicall([encodeEnter(senderUser, senderUser, amount)]);
 
       await relayer
         .connect(senderUser)
-        .multicall([encodeLeave(fbeets.address, beets, senderUser, recipientUser, amount, toChainedReference(0))]);
+        .multicall([encodeLeave(senderUser, recipientUser, amount, toChainedReference(0))]);
 
       const recipientBeetsBalance = await beets.balanceOf(recipientUser);
       expect(recipientBeetsBalance.toString()).to.equal(amount.toString());
@@ -226,16 +212,12 @@ describe('MasterChefStaking', function () {
 
     it('retrieves the correct chained reference amount and burns that amount of fbeets by leaving the sushibar', async () => {
       const amountDeposited = fp(10);
-      await relayer
-        .connect(senderUser)
-        .multicall([encodeEnter(fbeets.address, beets, senderUser, senderUser, amountDeposited)]);
+      await relayer.connect(senderUser).multicall([encodeEnter(senderUser, senderUser, amountDeposited)]);
 
       const ref = toChainedReference(0);
       await setChainedReferenceContents(ref, amount);
 
-      await relayer
-        .connect(senderUser)
-        .multicall([encodeLeave(fbeets.address, beets, senderUser, recipientUser, ref, toChainedReference(1))]);
+      await relayer.connect(senderUser).multicall([encodeLeave(senderUser, recipientUser, ref, toChainedReference(1))]);
 
       await expectChainedReferenceContents(toChainedReference(1), amount);
 

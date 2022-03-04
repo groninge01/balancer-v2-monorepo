@@ -20,18 +20,12 @@ import "@balancer-labs/v2-solidity-utils/contracts/math/FixedPoint.sol";
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
 
 import "./TestToken.sol";
-import "../interfaces/ISushiBar.sol";
+import "../interfaces/IFBeetsBar.sol";
 
-contract MockSushiBar is TestToken, ISushiBar {
-    IERC20 vestingToken;
+contract MockFBeetsBar is TestToken, IFBeetsBar {
+    IERC20 public override vestingToken;
 
-    constructor(
-        address admin,
-        string memory name,
-        string memory symbol,
-        uint8 decimals,
-        IERC20 _vestingToken
-    ) TestToken(admin, name, symbol, decimals) {
+    constructor(address admin, IERC20 _vestingToken) TestToken(admin, "FBeetsBar", "fBEETS", 18) {
         vestingToken = _vestingToken;
     }
 

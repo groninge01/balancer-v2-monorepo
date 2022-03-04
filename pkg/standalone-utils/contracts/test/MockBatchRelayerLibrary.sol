@@ -22,7 +22,12 @@ import "../BatchRelayerLibrary.sol";
 contract MockBatchRelayerLibrary is BatchRelayerLibrary {
     event ChainedReferenceValueRead(uint256 value);
 
-    constructor(IVault vault, IERC20 wstETH, IMasterChef masterChef) BatchRelayerLibrary(vault, wstETH, masterChef) {}
+    constructor(IVault vault,
+        IERC20 wstETH,
+        IMasterChef masterChef,
+        IFBeetsBar fBeetsBar,
+        IBooMirrorWorld mirrorWorld
+    ) BatchRelayerLibrary(vault, wstETH, masterChef, fBeetsBar, mirrorWorld) {}
 
     function setChainedReferenceValue(uint256 ref, uint256 value) public returns (uint256) {
         _setChainedReferenceValue(ref, value);

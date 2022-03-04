@@ -37,7 +37,7 @@ abstract contract SushiBarStaking is IBaseRelayerLibrary {
         address recipient,
         uint256 amount,
         uint256 outputReference
-    ) external payable {
+    ) internal {
         if (_isChainedReference(amount)) {
             amount = _getChainedReferenceValue(amount);
         }
@@ -80,7 +80,7 @@ abstract contract SushiBarStaking is IBaseRelayerLibrary {
         address recipient,
         uint256 amount,
         uint256 outputReference
-    ) external payable {
+    ) internal {
         if (_isChainedReference(amount)) {
             amount = _getChainedReferenceValue(amount);
         }
