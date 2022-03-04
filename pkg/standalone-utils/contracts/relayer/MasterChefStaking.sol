@@ -16,12 +16,12 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/Address.sol";
+import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
 
 import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 
 import "../interfaces/IBaseRelayerLibrary.sol";
 import "../interfaces/IMasterChef.sol";
-import "../../../solidity-utils/contracts/openzeppelin/IERC20.sol";
 
 /**
  * @title MasterChefStaking
@@ -31,8 +31,13 @@ import "../../../solidity-utils/contracts/openzeppelin/IERC20.sol";
 abstract contract MasterChefStaking is IBaseRelayerLibrary {
     using Address for address payable;
 
-    function depositToken(
-        IMasterChef masterChef,
+    IMasterChef private immutable _masterChef;
+
+    constructor(IMasterChef masterChef) {
+        _masterChef = masterChef;
+    }
+
+    function masterChefDeposit(
         address sender,
         address recipient,
         IERC20 token,
@@ -40,6 +45,8 @@ abstract contract MasterChefStaking is IBaseRelayerLibrary {
         uint256 amount,
         uint256 outputReference
     ) external payable {
+        require(address(_masterChef.lpTokens(pid)) == address(token), "Incorrect token for pid");
+
         if (_isChainedReference(amount)) {
             amount = _getChainedReferenceValue(amount);
         }
@@ -52,19 +59,16 @@ abstract contract MasterChefStaking is IBaseRelayerLibrary {
         }
 
         // deposit the tokens to the masterchef
-        token.approve(address(masterChef), amount);
-        masterChef.deposit(pid, amount, recipient);
+        token.approve(address(_masterChef), amount);
+        _masterChef.deposit(pid, amount, recipient);
 
         if (_isChainedReference(outputReference)) {
             _setChainedReferenceValue(outputReference, amount);
         }
     }
 
-    function withdrawToken(
-        IMasterChef masterChef,
-        address sender,
+    function masterChefWithdraw(
         address recipient,
-        IERC20 token,
         uint256 pid,
         uint256 amount,
         uint256 outputReference
@@ -74,7 +78,7 @@ abstract contract MasterChefStaking is IBaseRelayerLibrary {
         }
 
         // withdraw the token from the masterchef, sending it to the recipient
-        masterChef.withdrawAndHarvest(pid, amount, recipient);
+        _masterChef.withdrawAndHarvest(pid, amount, recipient);
 
         if (_isChainedReference(outputReference)) {
             _setChainedReferenceValue(outputReference, amount);

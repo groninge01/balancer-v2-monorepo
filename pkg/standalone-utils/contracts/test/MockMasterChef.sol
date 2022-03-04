@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2015, 2016, 2017 Dapphub
+
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -16,16 +18,20 @@ pragma solidity ^0.7.0;
 
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
 
-interface ISushiBar is IERC20 {
-    /**
-     * @notice Deposit tokens to the SushiBar and receive xSUSHI tokens in return.
-     * @param _amount token amount to deposit.
-     **/
-    function enter(uint256 _amount) external;
+import "../interfaces/IMasterChef.sol";
 
-    /**
-     * @notice Withdraw LP tokens from MasterChef and harvest proceeds for transaction sender to `_to`.
-     * @param _share The amount of x tokens to burn
-     **/
-    function leave(uint256 _share) external;
+contract MockMasterChef is IMasterChef {
+    IERC20[] public override lpTokens;
+
+    constructor(IERC20[] memory _lpTokens) {
+        lpTokens = _lpTokens;
+    }
+
+    function deposit(uint256 pid , uint256 _amount, address) public override {
+        lpTokens[pid].transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function withdrawAndHarvest(uint256 pid, uint256 _amount, address _to) public override {
+        lpTokens[pid].transfer(_to, _amount);
+    }
 }

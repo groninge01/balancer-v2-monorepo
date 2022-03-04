@@ -14,14 +14,19 @@
 
 pragma solidity ^0.7.0;
 
+import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
+
 interface IMasterChef {
+    /// @notice Address of the LP token for each MCV pool.
+    function lpTokens(uint256 idx) external view returns (IERC20);
+
     /**
      * @notice Deposit LP tokens to MasterChef for reward allocation.
      * @param _pid The index of the pool. See `poolInfo`.
      * @param _amount LP token amount to deposit.
      * @param _to Address to deposit the tokens on behalf of.
      **/
-    function deposit(uint256 _pid, uint256 _amount, address _to) public;
+    function deposit(uint256 _pid, uint256 _amount, address _to) external;
 
     /**
      * @notice Withdraw LP tokens from MasterChef and harvest proceeds for transaction sender to `_to`.
@@ -29,5 +34,5 @@ interface IMasterChef {
      * @param _amount LP token amount to withdraw.
      * @param _to Receiver of the LP tokens and BEETS rewards.
      **/
-    function withdrawAndHarvest(uint256 _pid, uint256 _amount, address _to) public;
+    function withdrawAndHarvest(uint256 _pid, uint256 _amount, address _to) external;
 }

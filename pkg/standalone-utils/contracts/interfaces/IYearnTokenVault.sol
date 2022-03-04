@@ -18,6 +18,17 @@ import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
 
 interface IYearnTokenVault is IERC20 {
     /**
+     * @notice Deposits `_amount` `token`, issuing shares to `recipient`. If the Vault is in Emergency Shutdown, deposits will not be accepted and this call will fail.
+     * @param _amount The quantity of tokens to deposit, defaults to all.
+     * @param recipient The address to issue the shares in this Vault to. Defaults to the caller's address.
+     * @return The issued Vault shares.
+     **/
+    function deposit(
+        uint256 _amount,
+        address recipient
+    ) external returns (uint256);
+
+    /**
      * @notice Withdraws the calling account's tokens from this Vault, redeeming amount `_shares` for an appropriate amount of tokens. See note on `setWithdrawalQueue` for further details of withdrawal ordering and behavior.
      * @param maxShares How many shares to try and redeem for tokens, defaults to all.
      * @param recipient The address to issue the shares in this Vault to. Defaults to the caller's address.

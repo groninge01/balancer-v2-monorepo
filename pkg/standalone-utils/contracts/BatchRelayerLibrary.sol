@@ -22,14 +22,16 @@ import "./relayer/LidoWrapping.sol";
 import "./relayer/VaultActions.sol";
 import "./relayer/VaultPermit.sol";
 import "./relayer/YearnWrapping.sol";
+import "./relayer/MasterChefStaking.sol";
+import "./relayer/SushiBarStaking.sol";
 
 /**
  * @title Batch Relayer Library
  * @notice This contract is not a relayer by itself and calls into it directly will fail.
  * The associated relayer can be found by calling `getEntrypoint` on this contract.
  */
-contract BatchRelayerLibrary is BaseRelayerLibrary, AaveWrapping, LidoWrapping, YearnWrapping, VaultActions, VaultPermit {
-    constructor(IVault vault, IERC20 wstETH) BaseRelayerLibrary(vault) LidoWrapping(wstETH) {
+contract BatchRelayerLibrary is BaseRelayerLibrary, AaveWrapping, LidoWrapping, YearnWrapping, MasterChefStaking, SushiBarStaking, VaultActions, VaultPermit {
+    constructor(IVault vault, IERC20 wstETH, IMasterChef masterChef) BaseRelayerLibrary(vault) LidoWrapping(wstETH) MasterChefStaking(masterChef) {
         // solhint-disable-previous-line no-empty-blocks
     }
 }

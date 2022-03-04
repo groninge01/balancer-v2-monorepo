@@ -17,9 +17,9 @@ pragma experimental ABIEncoderV2;
 
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/Address.sol";
 import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
+import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
 
 import "../interfaces/IBaseRelayerLibrary.sol";
-import "../../../solidity-utils/contracts/openzeppelin/IERC20.sol";
 import "../interfaces/ISushiBar.sol";
 
 /**
@@ -30,8 +30,9 @@ import "../interfaces/ISushiBar.sol";
 abstract contract SushiBarStaking is IBaseRelayerLibrary {
     using Address for address payable;
 
-    function wrapToken(
+    function sushiBarEnter(
         ISushiBar sushiBar,
+        IERC20 token,
         address sender,
         address recipient,
         uint256 amount,
@@ -41,30 +42,40 @@ abstract contract SushiBarStaking is IBaseRelayerLibrary {
             amount = _getChainedReferenceValue(amount);
         }
 
+        //We should be verifying that the token passed in is in fact the correct token for the sushi bar,
+        //but xBOO, xTAROT and fBEETS all implement the underlying token with different variables names
+        //(xBOO.boo / xTAROT.underlying / fBEETS.vestingToken). Either we implement an extension for each,
+        //or we forgo the require check, as both enter and leave are the same interface across all 3.
+
         // The deposit caller is the implicit sender of tokens, so if the goal is for the tokens
         // to be sourced from outside the relayer, we must first pull them here.
         if (sender != address(this)) {
             require(sender == msg.sender, "Incorrect sender");
-            _pullToken(sender, sushiBar.vestingToken(), amount);
+            _pullToken(sender, token, amount);
         }
 
+        //determine the amount of xSUSHI that is present on the batch relayer prior to entering
+        //this should always be 0, but we want to be certain
+        uint256 xSushiAmountBefore = sushiBar.balanceOf(address(this));
+
         //deposit the vesting token into the sushi bar
-        sushiBar.vestingToken().approve(address(sushiBar), amount);
+        token.approve(address(sushiBar), amount);
         sushiBar.enter(amount);
 
         //determine the amount of xSUSHI minted for the amount deposited
-        uint256 xSushiAmount = sushiBar.balanceOf(address(this));
+        uint256 xSushiAmount = sushiBar.balanceOf(address(this)) - xSushiAmountBefore;
 
         //transfer the xSUSHI to the recipient
-        sushiBar.transfer(xSushiAmount, recipient);
+        sushiBar.transfer(recipient, xSushiAmount);
 
         if (_isChainedReference(outputReference)) {
             _setChainedReferenceValue(outputReference, xSushiAmount);
         }
     }
 
-    function unwrapToken(
+    function sushiBarLeave(
         ISushiBar sushiBar,
+        IERC20 token,
         address sender,
         address recipient,
         uint256 amount,
@@ -81,17 +92,21 @@ abstract contract SushiBarStaking is IBaseRelayerLibrary {
             _pullToken(sender, sushiBar, amount);
         }
 
+        //determine the amount of SUSHI that is present on the batch relayer prior to leaving.
+        //This should always be 0, but we want to be certain
+        uint256 sushiAmountBefore = token.balanceOf(address(this));
+
         //burn the xSUSHI shares and receive SUSHI
         sushiBar.leave(amount);
 
         //determine the amount of SUSHI returned for the shares burned
-        uint256 vestingTokenAmount = sushiBar.vestingToken().balanceOf(address(this));
+        uint256 sushiAmount = token.balanceOf(address(this)) - sushiAmountBefore;
 
         //send the SUSHI to the recipient
-        sushiBar.vestingToken().transfer(recipient, vestingTokenAmount);
+        token.transfer(recipient, sushiAmount);
 
         if (_isChainedReference(outputReference)) {
-            _setChainedReferenceValue(outputReference, vestingTokenAmount);
+            _setChainedReferenceValue(outputReference, sushiAmount);
         }
     }
 }
