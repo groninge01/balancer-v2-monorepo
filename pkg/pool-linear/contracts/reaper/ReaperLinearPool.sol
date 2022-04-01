@@ -48,7 +48,7 @@ contract ReaperLinearPool is LinearPool {
         )
     {
         _tokenVault = IReaperTokenVault(address(wrappedToken));
-        _require(address(mainToken) == address(IReaperTokenVault(address(wrappedToken))), Errors.TOKENS_MISMATCH);
+        _require(address(mainToken) == IReaperTokenVault(address(wrappedToken)).token(), Errors.TOKENS_MISMATCH);
     }
 
     function _getWrappedTokenRate() internal view override returns (uint256) {
