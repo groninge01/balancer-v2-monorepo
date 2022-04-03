@@ -111,7 +111,7 @@ describe('ReaperLinearPool', function () {
       'bb-rf-USDC',
       USDC.address,
       rfUSDC.address,
-      bn(10e6),
+      bn(1_000_000e6),
       POOL_SWAP_FEE_PERCENTAGE,
       owner.address
     );
