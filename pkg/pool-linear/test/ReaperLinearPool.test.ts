@@ -141,7 +141,7 @@ describe('ReaperLinearPool', function () {
     await transaction.wait();
   });
 
-  it('should swap 0.000_000_000_001_000_000 rfUSDC to 2 USDC when the fullSharePrice is 2e18', async () => {
+  it('should swap 0.000_000_000_000_887_950 rfUSDC to 1 USDC when the fullSharePrice is 1126334694719328461', async () => {
     const data: SingleSwap = {
       poolId: bbrfUSDC.poolId,
       kind: 0,
@@ -171,7 +171,7 @@ describe('ReaperLinearPool', function () {
     expect(amountReturned.toString()).to.be.eq('1000000');
   });
 
-  it('should swap 0.9 rfDAI to 1 DAI when the fullSharePrice is 1.1e18', async () => {
+  it('should swap 1 rfDAI to 2 DAI when the fullSharePrice is 2e18', async () => {
     const data: SingleSwap = {
       poolId: bbrfDAI.poolId,
       kind: 0,
