@@ -52,6 +52,18 @@ contract ReaperLinearPool is LinearPool {
     }
 
     function _getWrappedTokenRate() internal view override returns (uint256) {
-        return _tokenVault.getPricePerFullShare();
+        ERC20 underlying = ERC20(_tokenVault.token());
+        uint256 underlyingDecimals = underlying.decimals();
+
+        uint256 sharePrice = _tokenVault.getPricePerFullShare();
+        if (underlyingDecimals > 18) {
+            // scale down to 18
+            return sharePrice / 10**(underlyingDecimals - 18);
+        } else if (underlyingDecimals < 18) {
+            // scale up to 18
+            return sharePrice * 10**(18 - underlyingDecimals);
+        }
+
+        return sharePrice;
     }
 }

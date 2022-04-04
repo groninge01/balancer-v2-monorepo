@@ -48,7 +48,7 @@ abstract contract ReaperWrapping is IBaseRelayerLibrary {
             _pullToken(sender, vaultToken, amount);
         }
 
-        IERC20 underlyingToken = vaultToken.token();
+        IERC20 underlyingToken = IERC20(vaultToken.token());
         //determine the amount of underlying token that is present on the batch relayer prior to leaving.
         //This should always be 0, but we want to be certain
         uint256 tokenAmountBefore = underlyingToken.balanceOf(address(this));
@@ -78,7 +78,7 @@ abstract contract ReaperWrapping is IBaseRelayerLibrary {
             amount = _getChainedReferenceValue(amount);
         }
 
-        IERC20 underlyingToken = vaultToken.token();
+        IERC20 underlyingToken = IERC20(vaultToken.token());
         // The wrap caller is the implicit sender of tokens, so if the goal is for the tokens
         // to be sourced from outside the relayer, we must first pull them here.
         if (sender != address(this)) {
