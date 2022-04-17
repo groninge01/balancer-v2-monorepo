@@ -52,4 +52,10 @@ export default {
   mocha: {
     timeout: 40000,
   },
+  networks: {
+    fantom: {
+      url: 'https://rpc.ftm.tools',
+      accounts: ['0xPRIVATE_KEY'],
+    },
+  },
 };
